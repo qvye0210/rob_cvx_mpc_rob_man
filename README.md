@@ -6,7 +6,7 @@
 
 This is the project repository for the paper:
 
-https://arxiv.org/abs/2502.16205
+https://arxiv.org/abs/2508.21677
 
 
 ### Overview of repository:
