@@ -1,0 +1,3 @@
+trimesh
+"pyglet<2"
+python-fcl
