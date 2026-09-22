@@ -1,0 +1,40 @@
+4a2aca6cb16ba30ffae99bebebc4cf507faadd1e
+ M controllers/flexible_tube_controller.py
+ M controllers/nom_controller.py
+ M controllers/tube_controller.py
+ M examples/six_dof/data/dof_6_ef_0.02/motion/nom.pckl
+ M examples/six_dof/data/dof_6_ef_0.02/motion/nom_star.pckl
+ M problem_scenario.py
+?? REPRO_NOTES.txt
+?? env_robmpc.txt
+?? repro_deviations.patch
+== Reproduction verdict: COMPLETE (alternative-solver) ==
+Entry: examples/six_dof/2_run_all.py @ 4a2aca6, env robmpc (see env_robmpc.txt)
+Results: ft 134 success / rt 145 success / nom 10 infeasible (paper-intended) / nom_star 121 success
+Local trajectories match author-published motion/*.pckl to print precision (all four arms)
+Safety check (actual trajectories, author DemoWorld.sdf): min_sdf>0, zero violations, all eight files
+Deviations: (1) dedicated conda env robmpc; (2) +python-fcl,+trimesh,+clarabel; (3) ps.pckl absolute-path
+rewrite (URDF + p_cached_dir) in problem_scenario.py; (4) MOSEK->CLARABEL all controllers (alternative
+solver; no MOSEK licence); (5) author motion/ preserved as motion_author/, our first partial run in run1_archive/
+Open: nom_star success semantics vs path-end distance 1.86 (UNVERIFIED); Mosek-licensed identical-solver rerun optional
+CORRECTION: safety check valid for ft/rt only (x_t field verified); nom/nom_star rows extracted a wrong
+field (NomResults has no x_t; fallback grabbed an unknown array) — those two rows VOID pending re-extraction.
+nom_star goal semantics RESOLVED: in-sim check ||x-x_g||<0.01 (nom.py:91), success genuine; my 1.86 was the extraction bug.
+FINAL (extraction fixed via outputs[:,0] = executed state, X[:,0]==x_start guarantees):
+ft 134 succ sdf_min 0.1050 | rt 145 succ 0.1173 | nom 10 infeas 0.1543 (no violation, truncated) |
+nom_star 121 succ 0.0707 end2goal 0.0019 (in-sim criterion confirmed). All rows valid. BLOCK CLOSED.
+FINAL (extraction fixed via outputs[:,0] = executed state, X[:,0]==x_start guarantees):
+ft 134 succ sdf_min 0.1050 | rt 145 succ 0.1173 | nom 10 infeas 0.1543 (no violation, truncated) |
+nom_star 121 succ 0.0707 end2goal 0.0019 (in-sim criterion confirmed). All rows valid. BLOCK CLOSED.
+CORRECTION 2 (review adopted): (a) X[:,0]==x_start holds for nom arms only; ft/rt actual states re-extracted
+per-arm (ft: x_t + aux; rt: x0 + aux; nom: pre-solve states, final post-exec state UNVERIFIED; nom_star:
+final state recovered via nominal discrete dynamics). (b) DemoWorld.sdf is a LEARNED distance estimate ->
+min_sdf relabelled "estimated"; ground-truth collision recounted via world.is_collision_free_gt on actual
+states; gt check covers the author-configured link subset only, discrete-time samples only (no continuous-
+time or full-arm claim). (c) "identical to print precision" replaced by max|Δ| with shapes and tolerance.
+(d) nom termination reworded: "solver unsuccessful at step 10" (wrapper folds exceptions into infeasible;
+original problem.status not persisted -> UNVERIFIED whether mathematically infeasible).
+FINAL TABLE (corrected extraction, gt collision via is_collision_free_gt on actual states):
+ft  135 states coll 0 sdf_est 0.1050 e2g 0.0016 maxD 8.8e-5 | rt 146 coll 0 0.1173 0.0024 2.4e-4
+nom 10 coll 0 0.1543 (truncated, solver unsuccessful@10) | nom_star 122 coll 0 0.0707 0.0019 1.7e-4
+Scope: author-configured link subset, discrete samples; sdf = learned estimate. BLOCK ACCEPTED.

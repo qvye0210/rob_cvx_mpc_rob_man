@@ -79,6 +79,16 @@ class ProblemScenarioMassAllPin:
     def from_cached_dir(cls, p_cached_dir):
         with (p_cached_dir / "ps.pckl").open("rb") as fp:
             data = pickle.load(fp)
+        # repro fix: cached ps.pckl stores the author's absolute URDF path
+        from pathlib import Path
+        if "p_cached_dir" in data:
+            data["p_cached_dir"] = Path(p_cached_dir)
+        if "p_cached_dir" in data:
+            data["p_cached_dir"] = Path(p_cached_dir)
+        for k, v in data.items():
+            if isinstance(v, (str, Path)) and str(v).endswith(".urdf"):
+                data[k] = str(Path(p_cached_dir).resolve().parents[1]
+                              / "manipulator" / Path(v).name)
         return cls(
             **data
         )

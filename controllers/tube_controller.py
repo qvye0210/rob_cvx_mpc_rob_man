@@ -99,7 +99,7 @@ class RobustCorridorController:
             cp.Minimize(objective),
             constraints=const
         )
-        self.use_solver = cp.MOSEK
+        self.use_solver = cp.CLARABEL
 
     @classmethod
     def from_cached_dir(

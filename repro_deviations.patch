@@ -1,0 +1,62 @@
+diff --git a/controllers/flexible_tube_controller.py b/controllers/flexible_tube_controller.py
+index 0fd9979..bea8f78 100644
+--- a/controllers/flexible_tube_controller.py
++++ b/controllers/flexible_tube_controller.py
+@@ -50,7 +50,7 @@ class FlexibleTubeNaiveCorridorController:
+     ):
+         P_sqrt_B = np.linalg.norm(P_sqrt @ B, ord=2)
+         self.P_sqrt_B = P_sqrt_B
+-        self.use_solver = cp.MOSEK
++        self.use_solver = cp.CLARABEL
+         m_x, m_u = B.shape
+         m_p = int(m_x / 2)
+         self.m_p = m_p
+diff --git a/controllers/nom_controller.py b/controllers/nom_controller.py
+index 7d2fd71..bd1e4c9 100644
+--- a/controllers/nom_controller.py
++++ b/controllers/nom_controller.py
+@@ -68,7 +68,7 @@ class NominalController:
+             self.X[m:, :] >= -v_lim
+         ]
+         self.problem = cp.Problem(cp.Minimize(objective), const)
+-        self.use_solver = cp.MOSEK
++        self.use_solver = cp.CLARABEL
+ 
+     def set_parameter_values(self, x_0, cs, rs, x_g_v):
+         self.x_start.value = x_0
+diff --git a/controllers/tube_controller.py b/controllers/tube_controller.py
+index fa9370d..1d64011 100644
+--- a/controllers/tube_controller.py
++++ b/controllers/tube_controller.py
+@@ -99,7 +99,7 @@ class RobustCorridorController:
+             cp.Minimize(objective),
+             constraints=const
+         )
+-        self.use_solver = cp.MOSEK
++        self.use_solver = cp.CLARABEL
+ 
+     @classmethod
+     def from_cached_dir(
+diff --git a/examples/six_dof/data/dof_6_ef_0.02/motion/nom.pckl b/examples/six_dof/data/dof_6_ef_0.02/motion/nom.pckl
+index 59f17a5..ef6efc0 100644
+Binary files a/examples/six_dof/data/dof_6_ef_0.02/motion/nom.pckl and b/examples/six_dof/data/dof_6_ef_0.02/motion/nom.pckl differ
+diff --git a/examples/six_dof/data/dof_6_ef_0.02/motion/nom_star.pckl b/examples/six_dof/data/dof_6_ef_0.02/motion/nom_star.pckl
+index 25209ee..0053283 100644
+Binary files a/examples/six_dof/data/dof_6_ef_0.02/motion/nom_star.pckl and b/examples/six_dof/data/dof_6_ef_0.02/motion/nom_star.pckl differ
+diff --git a/problem_scenario.py b/problem_scenario.py
+index 672e485..7ae534e 100644
+--- a/problem_scenario.py
++++ b/problem_scenario.py
+@@ -79,6 +79,12 @@ class ProblemScenarioMassAllPin:
+     def from_cached_dir(cls, p_cached_dir):
+         with (p_cached_dir / "ps.pckl").open("rb") as fp:
+             data = pickle.load(fp)
++        # repro fix: cached ps.pckl stores the author's absolute URDF path
++        from pathlib import Path
++        for k, v in data.items():
++            if isinstance(v, (str, Path)) and str(v).endswith(".urdf"):
++                data[k] = str(Path(p_cached_dir).resolve().parents[1]
++                              / "manipulator" / Path(v).name)
+         return cls(
+             **data
+         )

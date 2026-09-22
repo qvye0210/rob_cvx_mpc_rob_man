@@ -50,7 +50,7 @@ class FlexibleTubeNaiveCorridorController:
     ):
         P_sqrt_B = np.linalg.norm(P_sqrt @ B, ord=2)
         self.P_sqrt_B = P_sqrt_B
-        self.use_solver = cp.MOSEK
+        self.use_solver = cp.CLARABEL
         m_x, m_u = B.shape
         m_p = int(m_x / 2)
         self.m_p = m_p

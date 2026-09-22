@@ -68,7 +68,7 @@ class NominalController:
             self.X[m:, :] >= -v_lim
         ]
         self.problem = cp.Problem(cp.Minimize(objective), const)
-        self.use_solver = cp.MOSEK
+        self.use_solver = cp.CLARABEL
 
     def set_parameter_values(self, x_0, cs, rs, x_g_v):
         self.x_start.value = x_0
